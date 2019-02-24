@@ -16,6 +16,7 @@ namespace CalculatorClient
 
             SumDemo(client);
             await PrimeNumberDecompositionDemo(client);
+            await ComputeAverageDemo(client);
 
             await Shutdown(channel);
         }
@@ -30,13 +31,28 @@ namespace CalculatorClient
         private static async Task PrimeNumberDecompositionDemo(CalculatorService.CalculatorServiceClient client)
         {
             var call = client.PrimeNumberDecomposition(
-                new PrimeNumberDecompositionRequest {Number = Int32.MaxValue - 1});
+                new PrimeNumberDecompositionRequest {Number = int.MaxValue - 1});
             var responseStream = call.ResponseStream;
-            
+
             while (await responseStream.MoveNext())
             {
                 Console.WriteLine(responseStream.Current.PrimeFactor);
             }
+        }
+
+        private static async Task ComputeAverageDemo(CalculatorService.CalculatorServiceClient client)
+        {
+            var call = client.ComputeAverage();
+            int[] numbers = {95832, 72649, 56268, 25876, 5155, 7552, 40899, 75955, 75854, 75380};
+            foreach (var number in numbers)
+            {
+                await call.RequestStream.WriteAsync(new ComputeAverageRequest {Number = number});
+            }
+
+            await call.RequestStream.CompleteAsync();
+
+            var callResponseAsync = await call.ResponseAsync;
+            Console.WriteLine($"Average is {callResponseAsync.Average}");
         }
 
         private static async Task Shutdown(Channel channel)
