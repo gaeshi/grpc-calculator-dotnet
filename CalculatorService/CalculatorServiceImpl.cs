@@ -10,5 +10,26 @@ namespace CalculatorService
         {
             return Task.FromResult(new SumResponse {Result = request.FirstNumber + request.SecondNumber});
         }
+
+        public override async Task PrimeNumberDecomposition(PrimeNumberDecompositionRequest request,
+            IServerStreamWriter<PrimeNumberDecompositionResponse> responseStream,
+            ServerCallContext context)
+        {
+            var number = request.Number;
+            var divisor = 2;
+
+            while (number > 1)
+            {
+                if (number % divisor == 0)
+                {
+                    number /= divisor;
+                    await responseStream.WriteAsync(new PrimeNumberDecompositionResponse {PrimeFactor = divisor});
+                }
+                else
+                {
+                    divisor++;
+                }
+            }
+        }
     }
 }
