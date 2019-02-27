@@ -54,5 +54,23 @@ namespace CalculatorService
 
             return new ComputeAverageResponse {Average = (double) average};
         }
+
+        public override async Task FindMaximum(
+            IAsyncStreamReader<FindMaximumRequest> requestStream,
+            IServerStreamWriter<FindMaximumResponse> responseStream,
+            ServerCallContext context)
+        {
+            var currentMaximum = int.MinValue;
+            while (await requestStream.MoveNext())
+            {
+                if (currentMaximum >= requestStream.Current.Number)
+                {
+                    continue;
+                }
+
+                currentMaximum = requestStream.Current.Number;
+                await responseStream.WriteAsync(new FindMaximumResponse {Number = currentMaximum});
+            }
+        }
     }
 }

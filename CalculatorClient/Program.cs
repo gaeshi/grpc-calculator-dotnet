@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Calculator;
@@ -17,6 +18,7 @@ namespace CalculatorClient
             SumDemo(client);
             await PrimeNumberDecompositionDemo(client);
             await ComputeAverageDemo(client);
+            await FindMaximumDemo(client);
 
             await Shutdown(channel);
         }
@@ -53,6 +55,32 @@ namespace CalculatorClient
 
             var callResponseAsync = await call.ResponseAsync;
             Console.WriteLine($"Average is {callResponseAsync.Average}");
+        }
+
+        private static async Task FindMaximumDemo(CalculatorService.CalculatorServiceClient client)
+        {
+            var call = client.FindMaximum();
+
+            var responseReaderTask = Task.Run(async () =>
+            {
+                while (await call.ResponseStream.MoveNext())
+                {
+                    Console.Write("Received response... ");
+                    Console.WriteLine($"Current maximum: {call.ResponseStream.Current.Number}");
+                }
+            });
+
+            int[] numbers = {1, 5, 3, 6, 2, 2, 2, 6, 1, 20, 7, 5, 4, 3};
+            foreach (var number in numbers)
+            {
+                Console.WriteLine($"Sending number = {number}");
+                await call.RequestStream.WriteAsync(new FindMaximumRequest {Number = number});
+                Thread.Sleep(500);
+            }
+
+            await call.RequestStream.CompleteAsync();
+            await responseReaderTask;
+            Console.WriteLine("Done");
         }
 
         private static async Task Shutdown(Channel channel)
