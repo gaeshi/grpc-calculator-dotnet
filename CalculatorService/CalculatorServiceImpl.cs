@@ -72,5 +72,18 @@ namespace CalculatorService
                 await responseStream.WriteAsync(new FindMaximumResponse {Number = currentMaximum});
             }
         }
+
+        public override Task<SquareRootResponse> SquareRoot(SquareRootRequest request, ServerCallContext context)
+        {
+            var number = request.Number;
+            if (number < 0)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "The number being sent is not positive"),
+                    $"Number received: {number}");
+            }
+
+            var root = Math.Sqrt(number);
+            return Task.FromResult(new SquareRootResponse {NumberRoot = root});
+        }
     }
 }

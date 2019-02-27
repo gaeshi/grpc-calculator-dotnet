@@ -19,7 +19,8 @@ namespace CalculatorClient
             await PrimeNumberDecompositionDemo(client);
             await ComputeAverageDemo(client);
             await FindMaximumDemo(client);
-
+            ErrorCallDemo(client);
+            
             await Shutdown(channel);
         }
 
@@ -81,6 +82,18 @@ namespace CalculatorClient
             await call.RequestStream.CompleteAsync();
             await responseReaderTask;
             Console.WriteLine("Done");
+        }
+
+        private static void ErrorCallDemo(CalculatorService.CalculatorServiceClient client)
+        {
+            try
+            {
+                var call = client.SquareRoot(new SquareRootRequest {Number = -1});
+            }
+            catch (RpcException ex)
+            {
+                Console.WriteLine($"Got an exception for square root: {ex.Status}.");
+            }
         }
 
         private static async Task Shutdown(Channel channel)
